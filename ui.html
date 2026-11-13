@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<title>shpscan — просмотр</title>
+<style>
+    * {
+        box-sizing: border-box
+    }
+
+    body {
+        font-family: Segoe UI, Arial, sans-serif;
+        font-size: 13px;
+        background: #e4e4e4;
+        color: #1c1c1c;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column
+    }
+
+    header {
+        background: #cfcfcf;
+        border-bottom: 1px solid #a8a8a8;
+        padding: 8px 12px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap
+    }
+
+    header b {
+        font-size: 15px;
+        margin-right: 8px
+    }
+
+    button,
+    .btn {
+        font: inherit;
+        background: #f1f1f1;
+        border: 1px solid #8f8f8f;
+        padding: 4px 10px;
+        cursor: pointer;
+        color: #1c1c1c
+    }
+
+    button:hover,
+    .btn:hover {
+        background: #fff
+    }
+
+    #status {
+        color: #444;
+        margin-left: 8px
+    }
+
+    #wrap {
+        flex: 1;
+        display: flex;
+        min-height: 0
+    }
+
+    aside {
+        width: 310px;
+        flex: none;
+        border-right: 1px solid #a8a8a8;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        background: #dcdcdc
+    }
+
+    aside h3,
+    main h3 {
+        font-size: 13px;
+        margin: 0;
+        padding: 6px 10px;
+        background: #cfcfcf;
+        border-bottom: 1px solid #b5b5b5;
+        display: flex;
+        justify-content: space-between;
+        align-items: center
+    }
+
+    aside h3 a {
+        font-weight: normal;
+        cursor: pointer;
+        color: #1f4e79;
+        margin-left: 8px
+    }
+
+    .list {
+        overflow: auto;
+        padding: 4px 6px
+    }
+
+    #files {
+        max-height: 38%;
+        flex: none
+    }
+
+    #signals {
+        flex: 1
+    }
+
+    .row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 2px;
+        white-space: nowrap
+    }
+
+    .row:hover {
+        background: #ececec
+    }
+
+    .row label {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer
+    }
+
+    .row small {
+        color: #555
+    }
+
+    .dot {
+        width: 10px;
+        height: 10px;
+        flex: none;
+        display: inline-block
+    }
+
+    .x {
+        cursor: pointer;
+        color: #666;
+        padding: 0 4px
+    }
+
+    .x:hover {
+        color: #b00000
+    }
+
+    .bad {
+        color: #b00000;
+        font-weight: 600
+    }
+
+    #presets {
+        padding: 6px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        border-bottom: 1px solid #b5b5b5
+    }
+
+    #presets button {
+        font-size: 12px;
+        padding: 2px 6px
+    }
+
+    #search {
+        margin: 6px;
+        padding: 4px 6px;
+        font: inherit;
+        border: 1px solid #8f8f8f
+    }
+
+    main {
+        flex: 1;
+        overflow: auto;
+        min-width: 0;
+        padding: 0 0 30px
+    }
+
+    #bar {
+        padding: 6px 10px;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        flex-wrap: wrap;
+        position: sticky;
+        top: 0;
+        background: #e4e4e4;
+        border-bottom: 1px solid #b5b5b5;
+        z-index: 2
+    }
+
+    .panel {
+        background: #f1f1f1;
+        border: 1px solid #bdbdbd;
+        margin: 10px
+    }
+
+    .panel .title {
+        padding: 4px 8px;
+        font-weight: 600
+    }
+
+    canvas {
+        display: block;
+        width: 100%;
+        height: 260px;
+        cursor: crosshair
+    }
+
+    .legend {
+        padding: 4px 8px 6px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2px 16px;
+        font-size: 12px
+    }
+
+    .legend i {
+        display: inline-block;
+        width: 14px;
+        height: 3px;
+        vertical-align: middle;
+        margin-right: 4px
+    }
+
+    .legend b {
+        font-weight: 600;
+        margin-left: 4px
+    }
+
+    #empty {
+        margin: 60px auto;
+        max-width: 520px;
+        text-align: center;
+        color: #444;
+        line-height: 1.6;
+        border: 2px dashed #a8a8a8;
+        padding: 30px
+    }
+
+    #kpiBox {
+        margin: 10px;
+        background: #f1f1f1;
+        border: 1px solid #bdbdbd;
+        overflow: auto
+    }
+
+    table {
+        border-collapse: collapse;
+        font-size: 12px
+    }
+
+    th,
+    td {
+        border: 1px solid #c4c4c4;
+        padding: 2px 8px;
+        text-align: right;
+        white-space: nowrap
+    }
+
+    th {
+        background: #d6d6d6;
+        position: sticky;
+        top: 0
+    }
+
+    td:first-child,
+    th:first-child {
+        text-align: left;
+        position: sticky;
+        left: 0;
+        background: #e6e6e6
+    }
+
+    #kpiFilter {
+        font: inherit;
+        padding: 2px 6px;
+        border: 1px solid #8f8f8f;
+        font-weight: normal
+    }
+
+    .note {
+        color: #555;
+        font-weight: normal
+    }
+</style>
+
+<header>
+    <b>shpscan</b>
+    <label class="btn">Выбрать файлы<input id="pickFiles" type="file" accept=".shp" multiple hidden></label>
+    <label class="btn">Выбрать папку<input id="pickDir" type="file" webkitdirectory hidden></label>
+    <button id="clear">Убрать все</button>
+    <span id="status"></span>
+</header>
+
+<div id="wrap">
+    <aside>
+        <h3>Файлы <span><a id="allFiles">все</a><a id="noFiles">ни одного</a></span></h3>
+        <div id="files" class="list"></div>
+        <h3>Сигналы <span><a id="noSignals">снять все</a></span></h3>
+        <div id="presets"></div>
+        <input id="search" placeholder="Поиск сигнала…">
+        <div id="signals" class="list"></div>
+    </aside>
+    <main>
+        <div id="bar">
+            <span>Графики:
+                <label><input type="radio" name="mode" value="auto" checked> авто</label>
+                <label><input type="radio" name="mode" value="together"> все на одном</label>
+                <label><input type="radio" name="mode" value="separate"> каждый сигнал отдельно</label>
+            </span>
+            <label title="Сдвигает циклы так, чтобы начало нагрузки у всех было в нуле"><input id="align"
+                    type="checkbox" checked> совместить циклы по началу нагрузки</label>
+            <button id="reset">Сбросить масштаб</button>
+            <span class="note">Выделите мышью участок, чтобы приблизить. Двойной щелчок — вернуть.</span>
+        </div>
+        <div id="empty">Выберите один или несколько файлов .shp кнопкой сверху<br>или перетащите их мышью в это окно.
+        </div>
+        <div id="charts"></div>
+        <div id="kpiBox" hidden>
+            <h3><span>Показатели циклов <span id="kpiNote" class="note"></span></span>
+                <span style="font-weight:normal;white-space:nowrap">
+                    <select id="kpiSet">
+                        <option value="main">основные</option>
+                        <option value="all">все аналоговые сигналы</option>
+                        <option value="bit">дискретные сигналы</option>
+                        <option value="">всё сразу</option>
+                    </select>
+                    <label><input id="kpiBad" type="checkbox"> только отклонения</label>
+                    <input id="kpiFilter" placeholder="Фильтр…">
+                </span>
+            </h3>
+            <div id="kpi"></div>
+        </div>
+    </main>
+</div>
+
+<script>
+    'use strict';
+    // Приглушённая палитра; красный не используется — он только для отклонений.
+    const PAL = ['#1f4e79', '#5b8a3a', '#8a5a00', '#6b4c9a', '#2a8a8a', '#a0527a', '#4d4d4d', '#b06a2c', '#3d6fb0', '#7a8f2a'];
+    const $ = id => document.getElementById(id);
+
+    let S = { files: [], analogs: [], bits: [], groups: [], kpiOrder: [], stats: {} };
+    const checked = new Set();   // id файлов, которые показываем на графиках
+    let selected = [];           // выбранные сигналы: "a:имя" или "b:имя"
+    let mode = 'auto';
+    let xr = null;               // текущее приближение по времени [от, до] или null
+    let cursor = null;           // время под курсором
+    const cache = new Map();     // id файла -> {t, y:{сигнал: значения}}
+    let knownIds = new Set();
+
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const sigName = key => key.slice(2);
+    // Короткая метка группы для списка файлов: «OP1» или название машины.
+    const opOf = f => f.group.includes(' · ') ? f.group.split(' · ').pop() : f.group;
+    function num(v) {
+        if (v == null || !isFinite(v)) return '';
+        const a = Math.abs(v);
+        return a >= 1000 ? v.toFixed(0) : a >= 100 ? v.toFixed(1) : a >= 1 ? v.toFixed(2) : v.toFixed(4);
+    }
+    function status(text, bad) { $('status').textContent = text; $('status').className = bad ? 'bad' : ''; }
+
+    async function api(path, body) {
+        const opt = body === undefined ? {} : (body instanceof FormData ? { method: 'POST', body } :
+            { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const r = await fetch(path, opt);
+        if (!r.ok) throw new Error(await r.text());
+        return r.json();
+    }
+
+    // ---------- состояние ----------
+
+    function applyState(st) {
+        S = st;
+        const ids = new Set(S.files.map(f => f.id));
+        for (const id of [...checked]) if (!ids.has(id)) { checked.delete(id); cache.delete(id); }
+        for (const f of S.files)           // новые файлы отмечаем сразу, но не больше 10 — иначе графики нечитаемы
+            if (!knownIds.has(f.id) && checked.size < 10) checked.add(f.id);
+        knownIds = ids;
+        const all = new Set([...S.analogs.map(n => 'a:' + n), ...S.bits.map(n => 'b:' + n)]);
+        selected = selected.filter(k => all.has(k));
+        if (!selected.length && S.groups.length) selected = S.groups[0].Signals.map(n => 'a:' + n).filter(k => all.has(k));
+        renderFiles(); renderPresets(); renderSignals(); refresh();
+    }
+
+    async function upload(fileList) {
+        const files = [...fileList].filter(f => /\.shp$/i.test(f.name));
+        if (!files.length) { status('Среди выбранного нет файлов .shp', true); return; }
+        const errors = [];
+        let last = null;
+        for (let i = 0; i < files.length; i += 4) {      // по 4 файла за запрос, чтобы видеть прогресс
+            const fd = new FormData();
+            files.slice(i, i + 4).forEach(f => fd.append('f', f, f.name));
+            status(`Читаю файлы: ${Math.min(i + 4, files.length)} из ${files.length}…`);
+            try { last = await api('/api/upload', fd); errors.push(...(last.errors || [])); }
+            catch (e) { errors.push(e.message); }
+        }
+        if (last) applyState(last);
+        if (errors.length) status(`Не прочитано ${errors.length}: ${errors[0]}`, true);
+        else status(`Загружено файлов: ${files.length}`);
+    }
+
+    // ---------- левая панель ----------
+
+    function renderFiles() {
+        $('files').innerHTML = S.files.map((f, i) => `
+    <div class="row" title="${esc(f.group + ' — ' + f.file)}">
+      <input type="checkbox" data-id="${f.id}" ${checked.has(f.id) ? 'checked' : ''}>
+      <span class="dot" style="background:${PAL[i % PAL.length]}"></span>
+      <label data-id="${f.id}">${esc(f.cycleId)} <small>${esc(opOf(f))} · ${esc(f.start.slice(0, 5) + ' ' + f.start.slice(11))} · ${f.shift}</small>
+        ${f.faults && f.faults.length ? `<span class="bad" title="Аварийные биты: ${esc(f.faults.join(', '))}">!</span>` : ''}</label>
+      <a href="/report?id=${f.id}" target="_blank" title="Полный отчёт по циклу">отчёт</a>
+      <span class="x" data-del="${f.id}" title="Убрать">✕</span>
+    </div>`).join('');
+    }
+    $('files').addEventListener('click', async e => {
+        const t = e.target;
+        if (t.dataset.del) { applyState(await api('/api/remove', { ids: [+t.dataset.del] })); return; }
+        if (t.dataset.id === undefined) return;
+        const id = +t.dataset.id;
+        if (t.tagName === 'LABEL' || t.parentElement.tagName === 'LABEL') { checked.has(id) ? checked.delete(id) : checked.add(id); renderFiles(); }
+        else t.checked ? checked.add(id) : checked.delete(id);
+        refresh();
+    });
+    $('allFiles').onclick = () => { S.files.forEach(f => checked.add(f.id)); renderFiles(); refresh(); };
+    $('noFiles').onclick = () => { checked.clear(); renderFiles(); refresh(); };
+
+    function renderPresets() {
+        const have = new Set(S.analogs);
+        $('presets').innerHTML = S.groups.map((g, i) => g.Signals.some(n => have.has(n)) ? `<button data-g="${i}">${esc(g.Title)}</button>` : '').join('');
+    }
+    $('presets').addEventListener('click', e => {
+        if (e.target.dataset.g === undefined) return;
+        const have = new Set(S.analogs);
+        selected = S.groups[+e.target.dataset.g].Signals.filter(n => have.has(n)).map(n => 'a:' + n);
+        renderSignals(); refresh();
+    });
+
+    function renderSignals() {
+        const q = $('search').value.trim().toLowerCase();
+        const sel = new Set(selected);
+        const item = (key, kind) => `<div class="row"><input type="checkbox" id="s_${esc(key)}" data-key="${esc(key)}" ${sel.has(key) ? 'checked' : ''}>
+    <label for="s_${esc(key)}">${esc(sigName(key))} <small>${kind}</small></label></div>`;
+        const keys = [...S.analogs.map(n => ['a:' + n, '']), ...S.bits.map(n => ['b:' + n, 'бит'])]
+            .filter(([k]) => !q || k.slice(2).toLowerCase().includes(q));
+        // выбранные — наверху, чтобы их было видно без прокрутки
+        keys.sort((a, b) => sel.has(b[0]) - sel.has(a[0]));
+        $('signals').innerHTML = keys.map(([k, kind]) => item(k, kind)).join('') || '<div class="row note">ничего не найдено</div>';
+    }
+    $('signals').addEventListener('change', e => {
+        const key = e.target.dataset.key;
+        if (!key) return;
+        if (e.target.checked) selected.push(key); else selected = selected.filter(k => k !== key);
+        refresh();
+    });
+    $('search').oninput = renderSignals;
+    $('noSignals').onclick = () => { selected = []; renderSignals(); refresh(); };
+
+    // ---------- данные сигналов ----------
+
+    async function ensureData() {
+        const jobs = [];
+        for (const f of S.files) {
+            if (!checked.has(f.id)) continue;
+            let c = cache.get(f.id);
+            if (!c) { c = { t: null, y: {} }; cache.set(f.id, c); }
+            const need = selected.filter(k => !(k in c.y));
+            if (!need.length) continue;
+            jobs.push(api('/api/signals', { id: f.id, names: need }).then(r => {
+                c.t = r.t;
+                for (const k of need) c.y[k] = r.y[k] || null;   // null — в этом файле такого сигнала нет
+            }));
+        }
+        if (jobs.length) {
+            const busy = 'Читаю сигналы…';
+            if ($('status').className !== 'bad') status(busy);
+            await Promise.all(jobs);
+            if ($('status').textContent === busy) status('');   // чужое сообщение (например, об ошибке) не затираем
+        }
+    }
+
+    let refreshing = 0;
+    async function refresh() {
+        const my = ++refreshing;
+        $('empty').hidden = S.files.length > 0;
+        try { await ensureData(); } catch (e) { status(e.message, true); return; }
+        if (my !== refreshing) return;       // пока читали, выбор уже изменился
+        buildPanels(); renderKPI();
+    }
+
+    // ---------- графики ----------
+
+    let panels = [];
+    function activeFiles() { return S.files.filter(f => checked.has(f.id)); }
+
+    function buildPanels() {
+        const fs = activeFiles();
+        const m = mode === 'auto' ? (fs.length > 1 ? 'separate' : 'together') : mode;
+        const shift = $('align').checked && fs.length > 1;
+        const line = (f, key, color, label) => {
+            const c = cache.get(f.id);
+            if (!c || !c.y[key]) return null;
+            return { label, color, t: c.t, y: c.y[key], off: shift ? f.loadT0 : 0 };
+        };
+        const defs = [];
+        if (fs.length && selected.length) {
+            if (m === 'together') {
+                const lines = []; let i = 0;
+                for (const key of selected) for (const f of fs) {
+                    const l = line(f, key, PAL[i++ % PAL.length], fs.length > 1 ? `${sigName(key)} · ${f.cycleId}` : sigName(key));
+                    if (l) lines.push(l);
+                }
+                defs.push({ title: '', lines });
+            } else {
+                for (const key of selected) {
+                    const lines = fs.map(f => line(f, key, PAL[S.files.indexOf(f) % PAL.length], f.cycleId)).filter(Boolean);
+                    defs.push({ title: sigName(key), lines });
+                }
+            }
+        }
+        const steps = fs.length ? { list: fs[0].steps || [], off: shift ? fs[0].loadT0 : 0, of: fs[0].cycleId, many: fs.length > 1 } : null;
+        const box = $('charts');
+        box.innerHTML = '';
+        panels = defs.filter(d => d.lines.length).map(d => {
+            const el = document.createElement('div');
+            el.className = 'panel';
+            el.innerHTML = (d.title ? `<div class="title">${esc(d.title)}</div>` : '') + '<canvas></canvas><div class="legend"></div>';
+            box.appendChild(el);
+            const p = { ...d, steps, cv: el.querySelector('canvas'), lg: el.querySelector('.legend') };
+            attachMouse(p);
+            return p;
+        });
+        drawAll();
+    }
+
+    function niceStep(span, ticks) {
+        if (span <= 0) return 1;
+        const raw = span / ticks, p = Math.pow(10, Math.floor(Math.log10(raw)));
+        for (const m of [1, 2, 5, 10]) if (raw <= m * p) return m * p;
+        return 10 * p;
+    }
+
+    // Индекс отсчёта, ближайшего к времени x (двоичный поиск).
+    function nearest(t, x) {
+        let lo = 0, hi = t.length - 1;
+        while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (t[mid] < x) lo = mid; else hi = mid; }
+        return Math.abs(t[lo] - x) <= Math.abs(t[hi] - x) ? lo : hi;
+    }
+
+    function fullRange() {
+        let a = Infinity, b = -Infinity;
+        for (const p of panels) for (const l of p.lines) { a = Math.min(a, l.t[0] - l.off); b = Math.max(b, l.t[l.t.length - 1] - l.off); }
+        return isFinite(a) ? [a, b] : [0, 1];
+    }
+
+    function draw(p, X) {
+        const cv = p.cv, dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+        if (cv.width !== W * dpr || cv.height !== H * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
+        const g = cv.getContext('2d');
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        g.clearRect(0, 0, W, H);
+        const L = 58, R = 10, T = 18, B = 22, pw = W - L - R, ph = H - T - B;
+
+        // вертикальный масштаб — по тому участку, который сейчас виден
+        let lo = Infinity, hi = -Infinity;
+        for (const l of p.lines) for (let i = 0; i < l.t.length; i++) {
+            const x = l.t[i] - l.off;
+            if (x < X[0] || x > X[1]) continue;
+            const v = l.y[i]; if (v < lo) lo = v; if (v > hi) hi = v;
+        }
+        if (!isFinite(lo)) { lo = 0; hi = 1; }
+        if (hi === lo) { hi += 1; lo -= 1; }
+        const pad = (hi - lo) * 0.05; lo -= pad; hi += pad;
+        const sx = v => L + (v - X[0]) / (X[1] - X[0]) * pw;
+        const sy = v => T + (hi - v) / (hi - lo) * ph;
+        p.geo = { L, pw, X, T, ph };
+
+        g.fillStyle = '#fafafa'; g.fillRect(L, T, pw, ph);
+        g.font = '11px Segoe UI, Arial'; g.fillStyle = '#444'; g.lineWidth = 1;
+        g.textAlign = 'right'; g.textBaseline = 'middle';
+        const ys = niceStep(hi - lo, 5);
+        for (let v = Math.ceil(lo / ys) * ys; v <= hi; v += ys) {
+            g.strokeStyle = '#ddd'; g.beginPath(); g.moveTo(L, sy(v)); g.lineTo(L + pw, sy(v)); g.stroke();
+            g.fillText(num(v), L - 5, sy(v));
+        }
+        g.textAlign = 'center'; g.textBaseline = 'top';
+        const xs = niceStep(X[1] - X[0], 12);
+        for (let v = Math.ceil(X[0] / xs) * xs; v <= X[1]; v += xs) g.fillText(+v.toFixed(6) + ' с', sx(v), T + ph + 5);
+
+        g.save(); g.beginPath(); g.rect(L, T, pw, ph); g.clip();
+        if (p.steps) {                                   // границы шагов цикла (по первому отмеченному файлу)
+            g.strokeStyle = '#999'; g.setLineDash([3, 3]); g.textBaseline = 'bottom';
+            for (const s of p.steps.list) {
+                const x0 = sx(s.T0 - p.steps.off), x1 = sx(s.T0 + s.Dur - p.steps.off);
+                if (x1 < L || x0 > L + pw) continue;
+                g.beginPath(); g.moveTo(x0, T); g.lineTo(x0, T + ph); g.stroke();
+            }
+            g.setLineDash([]);
+        }
+        for (const l of p.lines) {
+            g.strokeStyle = l.color; g.lineWidth = 1.3; g.beginPath();
+            let started = false;
+            for (let i = 0; i < l.t.length; i++) {
+                const x = l.t[i] - l.off;
+                if (x < X[0] - 1 || x > X[1] + 1) continue;
+                if (started) g.lineTo(sx(x), sy(l.y[i])); else { g.moveTo(sx(x), sy(l.y[i])); started = true; }
+            }
+            g.stroke();
+        }
+        if (cursor != null && cursor >= X[0] && cursor <= X[1]) {
+            g.strokeStyle = '#000'; g.lineWidth = 1; g.beginPath(); g.moveTo(sx(cursor), T); g.lineTo(sx(cursor), T + ph); g.stroke();
+        }
+        if (p.drag) { g.fillStyle = 'rgba(31,78,121,.15)'; g.fillRect(Math.min(p.drag[0], p.drag[1]), T, Math.abs(p.drag[1] - p.drag[0]), ph); }
+        g.restore();
+        g.strokeStyle = '#aaa'; g.strokeRect(L + .5, T + .5, pw, ph);
+        if (p.steps) {                                   // подписи шагов над графиком
+            g.fillStyle = '#444'; g.textAlign = 'center'; g.textBaseline = 'bottom';
+            for (const s of p.steps.list) {
+                const x0 = Math.max(L, sx(s.T0 - p.steps.off)), x1 = Math.min(L + pw, sx(s.T0 + s.Dur - p.steps.off));
+                if (x1 - x0 > 26) g.fillText('ш.' + s.Step, (x0 + x1) / 2, T - 3);
+            }
+        }
+
+        // легенда: под курсором — значения в этой точке, иначе минимум и максимум
+        p.lg.innerHTML = p.lines.map(l => {
+            let val;
+            if (cursor != null) val = `<b>${num(l.y[nearest(l.t, cursor + l.off)])}</b>`;
+            else { let a = Infinity, b = -Infinity; for (const v of l.y) { if (v < a) a = v; if (v > b) b = v; } val = `<small>мин ${num(a)}, макс ${num(b)}</small>`; }
+            return `<span><i style="background:${l.color}"></i>${esc(l.label)} ${val}</span>`;
+        }).join('') + (cursor != null ? `<span class="note">t = ${cursor.toFixed(2)} с</span>` : '') +
+            (p.steps && p.steps.many && p.steps.list.length ? `<span class="note">шаги — по циклу ${esc(p.steps.of)}</span>` : '');
+    }
+
+    let pending = false;
+    function drawAll() {
+        if (pending) return;
+        pending = true;
+        requestAnimationFrame(() => { pending = false; const X = xr || fullRange(); for (const p of panels) draw(p, X); });
+    }
+
+    function attachMouse(p) {
+        const cv = p.cv;
+        const toT = px => p.geo.X[0] + (px - p.geo.L) / p.geo.pw * (p.geo.X[1] - p.geo.X[0]);
+        const pos = e => e.clientX - cv.getBoundingClientRect().left;
+        cv.addEventListener('mousemove', e => {
+            if (!p.geo) return;
+            const x = pos(e);
+            if (p.drag) p.drag[1] = x;
+            cursor = (x >= p.geo.L && x <= p.geo.L + p.geo.pw) ? toT(x) : null;
+            drawAll();
+        });
+        cv.addEventListener('mouseleave', () => { cursor = null; p.drag = null; drawAll(); });
+        cv.addEventListener('mousedown', e => { p.drag = [pos(e), pos(e)]; });
+        cv.addEventListener('mouseup', () => {
+            if (p.drag && Math.abs(p.drag[1] - p.drag[0]) > 6) {
+                const a = toT(Math.min(p.drag[0], p.drag[1])), b = toT(Math.max(p.drag[0], p.drag[1]));
+                xr = [Math.max(a, p.geo.X[0]), Math.min(b, p.geo.X[1])];
+            }
+            p.drag = null; drawAll();
+        });
+        cv.addEventListener('dblclick', () => { xr = null; drawAll(); });
+    }
+
+    document.querySelectorAll('input[name=mode]').forEach(r => r.onchange = () => { mode = r.value; buildPanels(); });
+    $('align').onchange = () => { xr = null; buildPanels(); };
+    $('reset').onclick = () => { xr = null; drawAll(); };
+    window.addEventListener('resize', drawAll);
+
+    // ---------- таблица показателей ----------
+
+    function renderKPI() {
+        const fs = activeFiles();
+        $('kpiBox').hidden = !fs.length;
+        if (!fs.length) return;
+        const q = $('kpiFilter').value.trim().toLowerCase();
+        // Норма считается отдельно в каждой группе (машина + операция) и только если в группе хватает циклов.
+        const size = {};
+        for (const f of S.files) size[f.group] = (size[f.group] || 0) + 1;
+        const hasNorm = g => size[g] >= S.minForNorm;
+        const groups = [...new Set(fs.map(f => f.group))];
+        const oneGroup = groups.length === 1 && hasNorm(groups[0]);   // столбец «Норма» имеет смысл только для одной группы
+        $('kpiNote').textContent = groups.some(hasNorm)
+            ? `— норма считается отдельно по каждой группе (${Object.entries(size).map(([g, n]) => g + ': ' + n).join(', ')}), красным отмечен выход за ${S.zLimit}σ (по всем сигналам — за ${S.zLimitAuto}σ)`
+            : `— для расчёта нормы нужно от ${S.minForNorm} циклов одной машины и операции (${Object.entries(size).map(([g, n]) => g + ': ' + n).join(', ')})`;
+        let h = '<table><tr><th>Показатель</th>' + (oneGroup ? '<th>Норма</th>' : '') +
+            fs.map(f => `<th>${esc(f.cycleId)}${groups.length > 1 ? '<br><small>' + esc(opOf(f)) + '</small>' : ''}</th>`).join('') + '</tr>';
+        const set = $('kpiSet').value, onlyBad = $('kpiBad').checked;
+        const kind = key => key.startsWith('all.') ? 'all' : key.startsWith('bit.') ? 'bit' : 'main';
+        let shown = 0;
+        for (const key of S.kpiOrder) {
+            if (set && kind(key) !== set) continue;
+            if (q && !key.toLowerCase().includes(q)) continue;
+            if (!fs.some(f => f.kpis[key] != null)) continue;            // у отмеченных файлов такого показателя нет
+            const stOf = f => hasNorm(f.group) ? (S.stats[f.group] || {})[key] : null;
+            const st0 = oneGroup ? stOf(fs[0]) : null;
+            const lim = kind(key) === 'main' ? S.zLimit : S.zLimitAuto;  // для показателей по всем сигналам порог строже
+            let row = `<tr><td>${esc(key)}</td>` + (oneGroup ? `<td>${st0 ? num(st0.median) : ''}</td>` : ''), anyBad = false;
+            for (const f of fs) {
+                const v = f.kpis[key], st = stOf(f);
+                const out = st && st.sigma > 0 && v != null && Math.abs(v - st.median) / st.sigma > lim;
+                anyBad = anyBad || out;
+                row += `<td${out ? ' class="bad"' : ''}>${num(v)}</td>`;
+            }
+            if (onlyBad && !anyBad) continue;
+            h += row + '</tr>'; shown++;
+        }
+        if (!shown) h += `<tr><td colspan="${fs.length + 2}" class="note">нет строк под этот отбор</td></tr>`;
+        $('kpi').innerHTML = h + '</table>';
+    }
+    $('kpiFilter').oninput = renderKPI;
+    $('kpiSet').onchange = renderKPI;
+    $('kpiBad').onchange = renderKPI;
+
+    // ---------- выбор файлов ----------
+
+    $('pickFiles').onchange = e => { upload(e.target.files); e.target.value = ''; };
+    $('pickDir').onchange = e => { upload(e.target.files); e.target.value = ''; };
+    $('clear').onclick = async () => { xr = null; applyState(await api('/api/remove', { ids: [] })); status(''); };
+    document.addEventListener('dragover', e => e.preventDefault());
+    document.addEventListener('drop', e => { e.preventDefault(); upload(e.dataTransfer.files); });
+
+    api('/api/state').then(applyState).catch(e => status(e.message, true));
+</script>
+
+</html>

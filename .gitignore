@@ -1,0 +1,12 @@
+# собранная программа
+shpscan
+shpscan.exe
+*.exe
+
+# данные и отчёты завода — в репозиторий не кладём
+*.shp
+*.html
+!ui.html
+*.csv
+out/
+reports/
